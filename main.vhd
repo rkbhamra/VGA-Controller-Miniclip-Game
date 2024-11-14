@@ -27,13 +27,31 @@ entity display is
 end display;
 
 architecture Behavioral of display is 
-    signal pixel : unsigned(10 downto 0) := (others => '0');
-    signal line : unsigned(10 downto 0) := (others => '0');
-    signal dac : std_logic := '0';  
-    signal dac_counter : integer := 0;  
-    constant DAC_CLK_DIVIDE : integer := 2;  
-begin 
+	 signal dac : std_logic := '0';  
+    signal dac_counter : integer := 0;
+	 
+    signal pixel : unsigned(9 downto 0) := (others => '0');
+    signal line : unsigned(9 downto 0) := (others => '0');
+	 signal frame : std_logic := '0';
+	 
+	 signal blueMove : unsigned(9 downto 0) := "0000101000";
+	 signal redMove : unsigned(9 downto 0) := "0000101000";	
+	 signal ballx : unsigned(9 downto 0) := "0011100001";
+	 signal bally : unsigned(9 downto 0) := "0011100001";
+	 signal directionx : std_logic := '0';
+	 signal directiony : std_logic := '0';
+	 signal blueScore : integer := 5;
+	 signal redScore : integer := 5;
+	 
+    constant DAC_CLK_DIVIDE : integer := 2; 
+	 constant playerLen : integer := 100;
+	 constant ballsize : integer := 15; 
+	 constant bluex : integer := 30;
+	 constant redx : integer := 600;
+	 
 
+	 
+begin 
     process(clk)
     begin
         if rising_edge(clk) then
@@ -60,6 +78,7 @@ begin
 
                     if line > to_unsigned(489, line'length) and line <= to_unsigned(491, line'length) then
                         V <= '1';  -- Vertical sync pulse
+								frame <= '1';
                     else
                         V <= '0';  -- Active video area
                     end if;
@@ -97,13 +116,124 @@ begin
 							   Bout <= "11111111"; 
 						  end if;
 						  
-						  -- BLUE PLAYER
-						  if SW3 = '1' then
-						      Rout <= "00000000";  
-							   Gout <= "00000000";  
+						  -- middle line
+						  if (pixel >= 319 and pixel <= 321) then
+								Rout <= "00000000";  
+							   Gout <= "11111111";  
 							   Bout <= "11111111";
 						  end if;
-						  				
+						  
+						  --lives
+						  if blueScore=0 then
+								if pixel >320 and pixel<=330 and line >=10 and line<=30 then
+									Rout <= "00000000";  
+									Gout <= "00000000";  
+									Bout <= "11111111";
+								end if;
+							end if;
+							
+						  --ball
+						  if frame = '1' then
+								--if going left
+								if directionx = '0' then
+									ballx <= ballx - 1;
+									frame <= '0';
+--									if (ballx <= 20) then
+									if (bally+ballsize) >= blueMove and bally<=(blueMove+playerLen) and ballx <= (bluex+10) then
+										directionx <= '1';
+									else
+										--score for red
+										if ballx < bluex then
+											blueScore <= blueScore - 1;
+										end if;
+									end if;
+								--going right
+								elsif directionx = '1' then
+									ballx <= ballx + 1;
+									frame <= '0';
+--									if (ballx+ballsize) >= 620 then
+									if (bally+ballsize) >= redMove and bally<=(redMove+playerLen) and (ballx+ballsize) = redx then
+										directionx <= '0';
+									else
+									   --score for blue
+										if ballx >= redx then
+											redScore <= redScore - 1;
+										end if;
+									end if;
+								end if;
+									
+								--if up, go down
+								if directiony = '0' then
+									bally <= bally - 1;
+									if (bally <= 20) then
+										directiony <= '1';
+									end if;
+								--if down, go up
+								elsif directiony = '1' then
+									bally <= bally + 1;
+									if (bally+ballsize) >= 420 then
+										directiony <= '0';
+									end if;
+								end if;
+
+						  end if;
+						  if (pixel >= ballx and pixel <= (ballx+ballsize) and line >= bally and line <= (bally+ballsize)) then
+								Rout <= "11111111";  
+							   Gout <= "11111111";  
+							   Bout <= "00000000";
+						  end if;
+						  
+						  -- BLUE PLAYER
+						  -- going up
+						  if SW3 = '1' then
+								if frame = '1' and blueMove/=30 then
+									blueMove <= blueMove - 1;
+									frame <= '0';
+								end if;
+								if (line >= blueMove and line <= (blueMove+playerLen)) and (pixel >=bluex and pixel <= (bluex+10)) then
+									Rout <= "00000000";  
+									Gout <= "00000000";  
+									Bout <= "11111111";
+								end if;	
+							-- going down
+							elsif SW3 = '0' then 
+								if frame = '1' and blueMove/=350 then
+									blueMove <= blueMove + 1;
+									frame <= '0';
+								end if;
+								if (line >= blueMove and line <= (blueMove+playerLen)) and (pixel >=bluex and pixel <= (bluex+10)) then
+									Rout <= "00000000";  
+									Gout <= "00000000";  
+									Bout <= "11111111";
+								end if;
+						  end if;
+						  
+						  -- RED PLAYER
+						  -- going up
+						  if SW2 = '1' then
+								if frame = '1' and redMove/=30 then
+									redMove <= redMove - 1;
+									frame <= '0';
+								end if;
+								if (line >= redMove and line <= (redMove+playerLen)) and (pixel >=redx and pixel <= (redx+10)) then
+									Rout <= "11111111";  
+									Gout <= "00000000";  
+									Bout <= "00000000";
+								end if;	
+							-- going down
+							elsif SW2 = '0' then 
+								if frame = '1' and redMove/=350 then
+									redMove <= redMove + 1;
+									frame <= '0';
+								end if;
+								if (line >= redMove and line <= (redMove+playerLen)) and (pixel >=redx and pixel <= (redx+10)) then
+									Rout <= "11111111";  
+									Gout <= "00000000";  
+									Bout <= "00000000";
+								end if;
+						  end if;
+						  
+					  				
 					 ---------------------------------------------
 					 --        DO NOT TOUCH ME PLEASE			  --
 					 ---------------------------------------------
