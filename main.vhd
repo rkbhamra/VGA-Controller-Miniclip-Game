@@ -27,6 +27,7 @@ entity display is
 end display;
 
 architecture Behavioral of display is 
+
 	 signal dac : std_logic := '0';  
     signal dac_counter : integer := 0;
 	 
@@ -34,8 +35,8 @@ architecture Behavioral of display is
     signal line : unsigned(9 downto 0) := (others => '0');
 	 signal frame : std_logic := '0';
 	 
-	 signal blueMove : unsigned(9 downto 0) := "0000101000";
-	 signal redMove : unsigned(9 downto 0) := "0000101000";	
+	 signal blueMove : unsigned(9 downto 0) := "0000101101";
+	 signal redMove : unsigned(9 downto 0) := "0000101101";	
 	 signal ballx : unsigned(9 downto 0) := "0011100001";
 	 signal bally : unsigned(9 downto 0) := "0011100001";
 	 signal directionx : std_logic := '0';
@@ -109,23 +110,23 @@ begin
                     Bout <= "00000000"; 
 						  
 						  -- top lines or left side line or right side line
-						  if (line >= 10 and line <= 20 and pixel >= 10 and pixel <= 630) or (line >= 20 and line <= 100 and pixel >= 10 and pixel <= 20)  or (line >= 20 and line <= 100 and pixel >= 620 and pixel <= 630) then
+						  if (line >= 10 and line <= 20 and pixel >= 10 and pixel <= 630) or (line >= 20 and line <= 110 and pixel >= 10 and pixel <= 20)  or (line >= 20 and line <= 110 and pixel >= 620 and pixel <= 630) then
 								Rout <= "11111111";  
 							   Gout <= "11111111";  
 							   Bout <= "11111111"; 
 						  end if;
 						  
 						  -- bottom lines or left side line or right side line
-						  if (line >= 440 and line <= 450 and pixel >= 10 and pixel <= 630) or (line >= 380 and line <= 450 and ((pixel >= 10 and pixel <= 20)  or (pixel >= 620 and pixel <= 630))) then
+						  if (line >= 440 and line <= 450 and pixel >= 10 and pixel <= 630) or (line >= 350 and line <= 450 and ((pixel >= 10 and pixel <= 20)  or (pixel >= 620 and pixel <= 630))) then
 								Rout <= "11111111";  
 							   Gout <= "11111111";  
 							   Bout <= "11111111"; 
 						  end if;
 						  
 						  -- middle line
-						  if (line mod 64 = 0) then
+						  if (line mod 32 = 0 and line>= 20 and line<=440) then
 								middleSet <= 1;
-						  elsif (line mod 32 = 0) then
+						  elsif (line mod 16 = 0) then
 								middleSet <= 0;
 						  end if;
 						  if middleSet = 1 then
@@ -176,48 +177,52 @@ begin
 							end if;
 							
 							if redScore>=5 then
-								if pixel >520 and pixel<=530 and line >=460 and line<=480 then
-									Rout <= "11111111";  
-									Gout <= "00000000";  
-									Bout <= "11111111";
-								end if;
-							end if;
-							if redScore>=4 then
 								if pixel >540 and pixel<=550 and line >=460 and line<=480 then
 									Rout <= "11111111";  
 									Gout <= "00000000";  
 									Bout <= "11111111";
 								end if;
 							end if;
-							if redScore >= 3 then
+							if redScore>=4 then
 								if pixel >560 and pixel<=570 and line >=460 and line<=480 then
 									Rout <= "11111111";  
 									Gout <= "00000000";  
 									Bout <= "11111111";
 								end if;
 							end if;
-							if redScore >= 2 then
+							if redScore >= 3 then
 								if pixel >580 and pixel<=590 and line >=460 and line<=480 then
 									Rout <= "11111111";  
 									Gout <= "00000000";  
 									Bout <= "11111111";
 								end if;
 							end if;
-							if redScore = 1 then
+							if redScore >= 2 then
 								if pixel >600 and pixel<=610 and line >=460 and line<=480 then
 									Rout <= "11111111";  
 									Gout <= "00000000";  
 									Bout <= "11111111";
 								end if;
 							end if;
+							if redScore >= 1 then
+								if pixel >620 and pixel<=630 and line >=460 and line<=480 then
+									Rout <= "11111111";  
+									Gout <= "00000000";  
+									Bout <= "11111111";
+								end if;
+							end if;
 							
+							-- If one loses then display "X LOST"
 							if redScore = 0 or blueScore = 0 then
-								if pixel>=0 and pixel<=640 and line>=30 and line<=70 then
+								if pixel>=0 and pixel<=640 and line>=130 and line<=170 then
 									Rout <= "00001111";  
 									Gout <= "00000000";  
 									Bout <= "00000000";
 								end if;
-								endGame <= 0;
+								if redScore = 0 and blueScore = 0 then
+									redScore <= 5;
+									blueScore <= 5;
+								end if;
 							end if;
 							
 						  ---------------------------------------
@@ -260,7 +265,7 @@ begin
 									frame <= '0';
 --									if (ballx <= 20) then
 									--hit paddle
-									if (bally+ballsize) >= blueMove and bally<=(blueMove+playerLen) and ballx = (bluex+10) then
+									if ((bally+ballsize) >= blueMove and bally<=(blueMove+playerLen) and ballx = (bluex+10)) then
 										directionx <= '1';
 									end if;
 									--miss paddle, score for red
@@ -273,7 +278,7 @@ begin
 									ballx <= ballx + 1;
 									frame <= '0';
 --									if (ballx+ballsize) >= 620 then
-									if (bally+ballsize) >= redMove and bally<=(redMove+playerLen) and (ballx+ballsize) = redx then
+									if ((bally+ballsize) >= redMove and bally<=(redMove+playerLen) and (ballx+ballsize) = redx) then
 										directionx <= '0';
 									end if;
 									--score for blue
@@ -292,7 +297,7 @@ begin
 								--if down, go up
 								elsif directiony = '1' then
 									bally <= bally + 1;
-									if (bally+ballsize) >= 420 then
+									if (bally+ballsize) >= 440 then
 										directiony <= '0';
 									end if;
 								end if;
@@ -302,7 +307,7 @@ begin
 						  -- BLUE PLAYER
 						  -- going up
 						  if SW3 = '1' then
-								if frame = '1' and blueMove/=30 then
+								if frame = '1' and blueMove/=25 then
 									blueMove <= blueMove - 1;
 									frame <= '0';
 								end if;
@@ -313,7 +318,7 @@ begin
 								end if;	
 							-- going down
 							elsif SW3 = '0' then 
-								if frame = '1' and blueMove/=340 then
+								if frame = '1' and blueMove/=335 then
 									blueMove <= blueMove + 1;
 									frame <= '0';
 								end if;
@@ -327,7 +332,7 @@ begin
 						  -- RED PLAYER
 						  -- going up
 						  if SW2 = '1' then
-								if frame = '1' and redMove/=30 then
+								if frame = '1' and redMove/=25 then
 									redMove <= redMove - 1;
 									frame <= '0';
 								end if;
@@ -338,7 +343,7 @@ begin
 								end if;	
 							-- going down
 							elsif SW2 = '0' then 
-								if frame = '1' and redMove/=340 then
+								if frame = '1' and redMove/=335 then
 									redMove <= redMove + 1;
 									frame <= '0';
 								end if;
