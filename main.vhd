@@ -11,6 +11,7 @@ use ieee.numeric_std.all;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
+
 entity display is
     Port (  clk : in  STD_LOGIC;
                 SW0 : in STD_LOGIC;
@@ -45,7 +46,7 @@ architecture Behavioral of display is
 	 signal redScore : integer := 5;
 	 signal rstBall : integer := 1;
 	 signal middleSet : integer := 0;
-	 signal endGame : integer := 0;
+	 signal endGame : integer := 20;
 	 
     constant DAC_CLK_DIVIDE : integer := 2; 
 	 constant playerLen : integer := 100;
@@ -77,7 +78,7 @@ begin
     process(clk)
     begin
         if rising_edge(clk) then
-            if dac = '1' and endGame/=1 then  
+            if dac = '1' then  
                 
                 if pixel = to_unsigned(799, pixel'length) then  
                     pixel <= (others => '0'); 
@@ -141,35 +142,35 @@ begin
 						  -- LIVES
 						  --------------------------------------
 						  if blueScore>=1 then
-								if pixel >10 and pixel<=20 and line >=460 and line<=480 then
+								if pixel >10 and pixel<=20 and line >=460 and line<=475 then
 									Rout <= "11111111";  
 									Gout <= "00000000";  
 									Bout <= "11111111";
 								end if;
 							end if;
 							if blueScore>=2 then
-								if pixel >30 and pixel<=40 and line >=460 and line<=480 then
+								if pixel >30 and pixel<=40 and line >=460 and line<=475 then
 									Rout <= "11111111";  
 									Gout <= "00000000";  
 									Bout <= "11111111";
 								end if;
 							end if;
 							if blueScore >= 3 then
-								if pixel >50 and pixel<=60 and line >=460 and line<=480 then
+								if pixel >50 and pixel<=60 and line >=460 and line<=475 then
 									Rout <= "11111111";  
 									Gout <= "00000000";  
 									Bout <= "11111111";
 								end if;
 							end if;
 							if blueScore >= 4 then
-								if pixel >70 and pixel<=80 and line >=460 and line<=480 then
+								if pixel >70 and pixel<=80 and line >=460 and line<=475 then
 									Rout <= "11111111";  
 									Gout <= "00000000";  
 									Bout <= "11111111";
 								end if;
 							end if;
 							if blueScore = 5 then
-								if pixel >90 and pixel<=100 and line >=460 and line<=480 then
+								if pixel >90 and pixel<=100 and line >=460 and line<=475 then
 									Rout <= "11111111";  
 									Gout <= "00000000";  
 									Bout <= "11111111";
@@ -177,53 +178,59 @@ begin
 							end if;
 							
 							if redScore>=5 then
-								if pixel >540 and pixel<=550 and line >=460 and line<=480 then
+								if pixel >540 and pixel<=550 and line >=460 and line<=475 then
 									Rout <= "11111111";  
 									Gout <= "00000000";  
 									Bout <= "11111111";
 								end if;
 							end if;
 							if redScore>=4 then
-								if pixel >560 and pixel<=570 and line >=460 and line<=480 then
+								if pixel >560 and pixel<=570 and line >=460 and line<=475 then
 									Rout <= "11111111";  
 									Gout <= "00000000";  
 									Bout <= "11111111";
 								end if;
 							end if;
 							if redScore >= 3 then
-								if pixel >580 and pixel<=590 and line >=460 and line<=480 then
+								if pixel >580 and pixel<=590 and line >=460 and line<=475 then
 									Rout <= "11111111";  
 									Gout <= "00000000";  
 									Bout <= "11111111";
 								end if;
 							end if;
 							if redScore >= 2 then
-								if pixel >600 and pixel<=610 and line >=460 and line<=480 then
+								if pixel >600 and pixel<=610 and line >=460 and line<=475 then
 									Rout <= "11111111";  
 									Gout <= "00000000";  
 									Bout <= "11111111";
 								end if;
 							end if;
 							if redScore >= 1 then
-								if pixel >620 and pixel<=630 and line >=460 and line<=480 then
+								if pixel >620 and pixel<=630 and line >=460 and line<=475 then
 									Rout <= "11111111";  
 									Gout <= "00000000";  
 									Bout <= "11111111";
 								end if;
 							end if;
 							
-							-- If one loses then display "X LOST"
-							if redScore = 0 or blueScore = 0 then
-								if pixel>=0 and pixel<=640 and line>=130 and line<=170 then
-									Rout <= "00001111";  
+							-- If one loses then display "L"
+							if redScore <= 0 and blueScore>0 then
+								-- L for red
+								if (pixel>=380 and pixel<=400 and line>=100 and line<=300) or (pixel>=380 and pixel<=520 and line>=300 and line<=320) then
+									Rout <= "11111111";  
 									Gout <= "00000000";  
 									Bout <= "00000000";
 								end if;
-								if redScore = 0 and blueScore = 0 then
-									redScore <= 5;
-									blueScore <= 5;
+							elsif blueScore = 0 and redScore>0 then
+								-- L for blue
+								if (pixel>=80 and pixel<=100 and line>=100 and line<=300) or (pixel>=80 and pixel<=220 and line>=300 and line<=320) then
+									Rout <= "00000000";  
+									Gout <= "00000000";  
+									Bout <= "11111111";
 								end if;
 							end if;
+							
+							
 							
 						  ---------------------------------------
 						  --BALL
@@ -237,14 +244,14 @@ begin
 									Bout <= "00000000";
 							  end if;
 							-- color the ball red
-						  elsif ballx <=20 then
+						  elsif ballx <20 then
 								if (pixel >= ballx and pixel <= (ballx+ballsize) and line >= bally and line <= (bally+ballsize)) then
 									Rout <= "11111111";  
 									Gout <= "00000000";  
 									Bout <= "00000000";
 								end if;
 						  -- color the ball red
-						  elsif (ballx+ballsize) >=620 then
+						  elsif (ballx+ballsize) >620 then
 								if (pixel >= ballx and pixel <= (ballx+ballsize) and line >= bally and line <= (bally+ballsize)) then
 									Rout <= "11111111";  
 									Gout <= "00000000";  
@@ -268,8 +275,12 @@ begin
 									if ((bally+ballsize) >= blueMove and bally<=(blueMove+playerLen) and ballx = (bluex+10)) then
 										directionx <= '1';
 									end if;
+									--hit side walls
+									if ballx=21 and (bally<=110 or (bally+ballsize)>=350) then
+										directionx <= '1';
+									end if;
 									--miss paddle, score for red
-									if ballx < 1 then
+									if (ballx+ballsize) < 1 then
 										blueScore <= blueScore - 1;
 										rstBall <= 1;
 									end if;
@@ -278,11 +289,16 @@ begin
 									ballx <= ballx + 1;
 									frame <= '0';
 --									if (ballx+ballsize) >= 620 then
+									-- hit paddle
 									if ((bally+ballsize) >= redMove and bally<=(redMove+playerLen) and (ballx+ballsize) = redx) then
 										directionx <= '0';
 									end if;
+									--hit side walls
+									if (ballx+ballsize)=619 and (bally<=110 or (bally+ballsize)>=350) then
+										directionx <= '0';
+									end if;
 									--score for blue
-									if (ballx+ballsize) = 640 then
+									if ballx = 640 then
 										redScore <= redScore - 1;
 										rstBall <= 1;
 									end if;
@@ -301,6 +317,18 @@ begin
 										directiony <= '0';
 									end if;
 								end if;
+								
+								--pause the game when someone wins and then reset the score. start over.
+								if endGame > 0 then
+									endGame <= endGame - 1;
+									if endGame = 1 then
+										redScore <= 5;
+										blueScore <= 5;
+									end if;
+								elsif redScore <= 0 or blueScore <= 0 then
+									endGame<=50;
+								end if;
+								
 
 						  end if;
 						  
